@@ -100,15 +100,15 @@ function sleep(seconds: number) {
   transporter = nodemailer.createTransport(MAIL_SETTINGS);
 
   while (true) {
+    await checkLoop(transporter);
+
+    await sleep(10 * 60);
+
     // send every N hours
     if (Date.now() - LAST_DUMMY_MAIL > 3 * 60 * 60 * 1000) {
       await sendEmail('Dummy Email', 'testing - can send messages');
 
       LAST_DUMMY_MAIL = Date.now();
     }
-
-    await checkLoop(transporter);
-
-    await sleep(10 * 60);
   }
 })();
