@@ -13,7 +13,7 @@ const SEARCH_PAGES = PAGES.map((urls) => ({
 
 let LAST_DUMMY_MAIL = 0;
 
-let transporter: nodemailer.Transporter;
+const transporter = nodemailer.createTransport(MAIL_SETTINGS);
 
 async function sendEmail(subject: string, text: string) {
   try {
@@ -61,7 +61,7 @@ async function areTicketsAvailable({ urls }: { urls: string[] }) {
   return hasTicketsAvailable;
 }
 
-async function checkLoop(transporter: nodemailer.Transporter) {
+async function checkLoop() {
   console.log('checkLoop');
 
   for (const SEARCH_PAGE of SEARCH_PAGES) {
@@ -69,9 +69,9 @@ async function checkLoop(transporter: nodemailer.Transporter) {
 
     const hasTicketsAvailable = await areTicketsAvailable({ urls });
 
-    if (hasTicketsAvailable) {
-      console.log('tickets_available');
+    console.log('hasTicketsAvailable', urls, hasTicketsAvailable);
 
+    if (hasTicketsAvailable) {
       // remind every N hours
       if (
         Date.now() - SEARCH_PAGE.lastDateTicketsAvailable >
@@ -97,10 +97,8 @@ function sleep(seconds: number) {
 }
 
 (async () => {
-  transporter = nodemailer.createTransport(MAIL_SETTINGS);
-
   while (true) {
-    await checkLoop(transporter);
+    await checkLoop();
 
     await sleep(10 * 60);
 
