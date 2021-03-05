@@ -11,11 +11,11 @@ const SEARCH_PAGES = PAGES.map((urls) => ({
   lastDateTicketsAvailable: 0,
 }));
 
-async function sendEmail(
-  transporter: nodemailer.Transporter,
-  subject: string,
-  text: string,
-) {
+let LAST_DUMMY_MAIL = 0;
+
+let transporter: nodemailer.Transporter;
+
+async function sendEmail(subject: string, text: string) {
   try {
     const res = await transporter.sendMail({
       from: 'tickets@klpq.men',
@@ -50,6 +50,11 @@ async function areTicketsAvailable({ urls }: { urls: string[] }) {
       }
     } catch (error) {
       console.log('http_error', error, url);
+
+      await sendEmail(
+        'Check Failed',
+        `tickets check failed with ${error.message} - ${urls[0]}`,
+      );
     }
   }
 
@@ -67,11 +72,14 @@ async function checkLoop(transporter: nodemailer.Transporter) {
     if (hasTicketsAvailable) {
       console.log('tickets_available');
 
-      if (Date.now() - SEARCH_PAGE.lastDateTicketsAvailable > 60 * 60 * 1000) {
+      // remind every N hours
+      if (
+        Date.now() - SEARCH_PAGE.lastDateTicketsAvailable >
+        1 * 60 * 60 * 1000
+      ) {
         console.log('send_email');
 
         await sendEmail(
-          transporter,
           'Tickets Available',
           `tickets available at - ${urls[0]}`,
         );
@@ -89,21 +97,18 @@ function sleep(seconds: number) {
 }
 
 (async () => {
-  const transporter = nodemailer.createTransport(MAIL_SETTINGS);
-
-  await sendEmail(transporter, 'Dummy Email', 'testing if can send messages');
+  transporter = nodemailer.createTransport(MAIL_SETTINGS);
 
   while (true) {
-    if (Math.random() > 0.7) {
-      await sendEmail(
-        transporter,
-        'Dummy Email',
-        'testing if can send messages',
-      );
+    // send every N hours
+    if (Date.now() - LAST_DUMMY_MAIL > 3 * 60 * 60 * 1000) {
+      await sendEmail('Dummy Email', 'testing - can send messages');
+
+      LAST_DUMMY_MAIL = Date.now();
     }
 
     await checkLoop(transporter);
 
-    await sleep(30 * 60);
+    await sleep(10 * 60);
   }
 })();
