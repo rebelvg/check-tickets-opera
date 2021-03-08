@@ -95,6 +95,8 @@ function sleep(seconds: number) {
 }
 
 (async () => {
+  console.log('app_started');
+
   while (true) {
     await checkLoop();
 
