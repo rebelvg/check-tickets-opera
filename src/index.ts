@@ -11,7 +11,7 @@ const SEARCH_PAGES = PAGES.map((urls) => ({
   lastDateTicketsAvailable: 0,
 }));
 
-let LAST_DUMMY_MAIL = 0;
+let LAST_DUMMY_MAIL = Date.now();
 
 const transporter = nodemailer.createTransport(MAIL_SETTINGS);
 
@@ -24,7 +24,7 @@ async function sendEmail(subject: string, text: string) {
       text,
     });
 
-    console.log(res);
+    console.log(res, subject, text);
   } catch (error) {
     console.log('mail_error', error, text);
   }
@@ -34,8 +34,6 @@ async function areTicketsAvailable({ urls }: { urls: string[] }) {
   let hasTicketsAvailable = false;
 
   for (const url of urls) {
-    console.log('areTicketsAvailable', url);
-
     try {
       const { data } = await axios.get(url);
 
